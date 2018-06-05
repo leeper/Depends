@@ -1,18 +1,20 @@
-This is a demo of the potential dangers of `Depends`. This repo contains three packages:
+This is a demo of the potential dangers of `Depends`. This repo contains four packages:
 
- - `dependsdplyr` Depends on dplyr and has no code
- - `dependsMASS` Depends on MASS and has no code
+ - `dependsdplyr` Depends on dplyr and has no code.
+ - `dependsMASS` Depends on MASS and has no code.
  - `dependsdplyr2` Depends on dplyr also, and uses the `select()` function without importing it or the dplyr namespace. Instead, it only `Depends` on dplyr.
+ - `importsdplyr` Depends on MASS but imports the `dplyr::select()` function for the sample function as in dependsdplyr2.
 
 This will highlight an important distinction between Depends - which *loads* a package namespace and *attaches* that namespace to the `search()` path - and Imports - which only loads the namespace.
 
 
 Here's some setup using the installed packages:
 
-```{r, reults="hide"}
+```{r, results="hide"}
 devtools::install("dependsdplyr", quick = TRUE, quiet = TRUE)
 devtools::install("dependsdplyr2", quick = TRUE, quiet = TRUE)
 devtools::install("dependsMASS", quick = TRUE, quiet = TRUE)
+devtools::install("importsdplyr", quick = TRUE, quiet = TRUE)
 ```
 
 And here's a demo of the usual package load order problem with which we are all familiar:
@@ -73,28 +75,102 @@ library("dependsMASS")
 head(choose_cols(mtcars, "cyl"))
 ```
 
-
 This fails even though it's package code. Why? Because dependsdplyr2 is counting on dplyr being not only attached but also attached after any other package that might create namespace conflicts.
+
+```{r}
+# cleanup
+detach("package:dependsMASS")
+detach("package:MASS")
+detach("package:dependsdplyr2")
+detach("package:dplyr")
+```
+
+Two further example might be useful. One is where we Depend on MASS but actually Import from dplyr:
+
+```{r}
+library("importsdplyr")
+"package:dplyr" %in% search() # FALSE
+"package:MASS" %in% search() # TRUE
+
+# imports dplyr function works as expected
+head(choose_cols(mtcars, "cyl"))
+```
+
+This highlights that the Depends on MASS is pointless. It's not imported from in NAMESPACE or via `::` so we don't actually need it in importsdplyr and our direct Import from dplyr prevents the attach-order problems of above.
+
+Another example uses Hadley's conflicted package to issue errors on namespace conflicts:
+
+```{r}
+# cleanup last example
+detach("package:importsdplyr")
+unloadNamespace("importsdplyr")
+unloadNamespace("dplyr")
+unloadNamespace("MASS")
+
+# load conflicted
+library("conflicted")
+
+# try to use importsdplyr again
+library("importsdplyr")
+head(choose_cols(mtcars, "cyl")) # works
+
+# and again after loading dplyr and MASS
+library("dplyr")
+library("MASS")
+head(choose_cols(mtcars, "cyl")) # works
+
+# but we get the error from conflicted if we use `select()` at the top-level
+select(mtcars, cyl)
+```
 
 The lessons learned:
 
- - Always use a NAMESPACE to specify imports so that your package code isn't harmed by other peoples' use of Depends
- - Use Imports to specify any package that must be installed and *loaded* for your package to work
+ - Always use a NAMESPACE to specify imports so that your package code isn't harmed by other peoples' use of Depends. (If you don't do this, you'll get a `NOTE` on `R CMD check` but you may not be doing that.)
+ - Use Imports to specify any package that must be installed and *loaded* for your package to work. Using Depends may not affect your package code if you're following good practice, but it can affect the user's.
  - Always use a fully qualified reference - `pkg::func()` - when there might be some namespace ambiguity, such as at the top-level or when your package imports from two namespaces that conflict (like MASS and dplyr)
- - Don't use Depends in your packages
+ - Don't use Depends in your packages.
 
-There are exceptions to the final rule (such as needing the methods package), but you never know what your use of Depends might do to someone else's top-level or package code.
+There are exceptions to the final rule (such as needing the methods package), but you never know what your use of Depends might do to someone else's top-level or package code. As always [*Writing R Extensions*](https://cran.r-project.org/doc/manuals/r-devel/R-exts.html#Package-Dependencies) is the best reference for appropriate specification of the DESCRIPTION file.
 
+The main counter-argument I've heard to this is that a developer may have a package that is fairly useless without its strong dependency (e.g., a graphics package building on ggplot2). In these cases, I also think Depends is a bad idea (for all the above resons) but also because it makes assumptions about the end-user (either that they don't know the dependency or that it's preferable for them to have the package attached.) Smart people disagree here, but my view is that we should try to make as few assumptions as possible about the end-user. Putting the dependency in Imports ensures that the package is installed and its namespace is available. 
+
+I don't think we should further assume that the user wants to be able to use `func()` without having to `library("dependency")` or `dependency::func()`. WRE says graphics extensions are a possible extension but I think it's safer to let users to decide whether and when to attach rather than load dependencies. For example, in my own scripts, I generally use `requireNamespace()` and fully qualified references and wouldn't want packages I'm using to attach anything. Lest weird stuff happens:
+
+
+```{r}
+# really cleanup last example
+detach("package:importsdplyr")
+unloadNamespace("importsdplyr")
+detach("package:dplyr")
+unloadNamespace("dplyr")
+detach("package:MASS")
+unloadNamespace("MASS")
+unloadNamespace("conflicted")
+
+# try something from MASS
+area(sin, 0, pi) # fails
+
+library("importsdplyr")
+head(choose_cols(mtcars, "cyl"))
+
+# try something from MASS, again
+area(sin, 0, pi) # works
+```
+
+Even though we didn't explicitly attach MASS, code from it now works. What changed? We could debug by actively checking `search()` but it's not obvious from the code alone. Again, opinions will differ on whether that's desirable or undesirable in any particular application but to me it feels wrong, since it then affects top-level code in non-obviou ways.
 
 ---
 
 Some cleanup:
 
 ```{r}
-# detach
-detach("package:dependsdplyr2")
-detach("package:dependsMASS")
-
 # remove packages
-remove.packages(c("dependsdplyr", "dependsdplyr2", "dependsMASS"))
+unloadNamespace("dependsdplyr")
+unloadNamespace("dependsdplyr2")
+unloadNamespace("dependsMASS")
+unloadNamespace("importsdplyr")
+remove.packages(c("dependsdplyr", "dependsdplyr2", "dependsMASS", "importsdplyr"))
+
+# session info
+sessionInfo()
 ```
