@@ -98,7 +98,7 @@ head(choose_cols(mtcars, "cyl"))
 
 This highlights that the Depends on MASS is pointless. It's not imported from in NAMESPACE or via `::` so we don't actually need it in importsdplyr and our direct Import from dplyr prevents the attach-order problems of above.
 
-Another example uses Hadley's conflicted package to issue errors on namespace conflicts:
+Another example uses Hadley's [conflicted](https://github.com/r-lib/conflicted) package to issue errors on namespace conflicts:
 
 ```{r}
 # cleanup last example
@@ -132,7 +132,7 @@ The lessons learned:
 
 There are exceptions to the final rule (such as needing the methods package), but you never know what your use of Depends might do to someone else's top-level or package code. As always [*Writing R Extensions*](https://cran.r-project.org/doc/manuals/r-devel/R-exts.html#Package-Dependencies) is the best reference for appropriate specification of the DESCRIPTION file.
 
-The main counter-argument I've heard to this is that a developer may have a package that is fairly useless without its strong dependency (e.g., a graphics package building on ggplot2). In these cases, I also think Depends is a bad idea (for all the above resons) but also because it makes assumptions about the end-user (either that they don't know the dependency or that it's preferable for them to have the package attached.) Smart people disagree here, but my view is that we should try to make as few assumptions as possible about the end-user. Putting the dependency in Imports ensures that the package is installed and its namespace is available. 
+The main counter-argument I've heard to this is that a developer may have a package that is fairly useless without its strong dependency (e.g., a graphics package building on ggplot2). In these cases, I also think Depends is a bad idea (for all the above reasons) but also because it makes assumptions about the end-user (either that they don't know the dependency or that it's preferable for them to have the package attached.) Smart people disagree here, but my view is that we should try to make as few assumptions as possible about the end-user. Putting the dependency in Imports ensures that the package is installed and its namespace is available. 
 
 I don't think we should further assume that the user wants to be able to use `func()` without having to `library("dependency")` or `dependency::func()`. WRE says graphics extensions are a possible extension but I think it's safer to let users decide whether and when to attach rather than load dependencies. For example, in my own scripts, I generally use `requireNamespace()` and fully qualified references and wouldn't want packages I'm using to attach anything. Lest weird stuff happens:
 
@@ -157,7 +157,7 @@ head(choose_cols(mtcars, "cyl"))
 area(sin, 0, pi) # works
 ```
 
-Even though we didn't explicitly attach MASS, code from it now works. What changed? We could debug by actively checking `search()` but it's not obvious from the code alone. Again, opinions will differ on whether that's desirable or undesirable in any particular application but to me it feels wrong, since it then affects top-level code in non-obviou ways.
+Even though we didn't explicitly attach MASS, code from it now works. What changed? We could debug by actively checking `search()` but it's not obvious from the code alone. Again, opinions will differ on whether that's desirable or undesirable in any particular application but to me it feels wrong, since it then affects top-level code in non-obvious ways.
 
 ---
 
