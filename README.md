@@ -295,6 +295,7 @@ Some cleanup:
 ```r
 # detach
 detach("package:dependsdplyr2")
+detach("package:dependsMASS")
 
 # remove packages
 remove.packages(c("dependsdplyr", "dependsdplyr2", "dependsMASS"))
