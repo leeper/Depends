@@ -279,12 +279,12 @@ This fails even though it's package code. Why? Because dependsdplyr2 is counting
 
 The lessons learned:
 
- - Always use a NAMESPACE to specify imports so that your package code isn't harmed other peoples' use of Depends
+ - Always use a NAMESPACE to specify imports so that your package code isn't harmed by other peoples' use of Depends
  - Use Imports to specify any package that must be installed and *loaded* for your package to work
- - Always use a fully qualified reference - `pkg::func()` - when there might be some namespace ambiguity, such as at the top-level
+ - Always use a fully qualified reference - `pkg::func()` - when there might be some namespace ambiguity, such as at the top-level or when your package imports from two namespaces that conflict (like MASS and dplyr)
  - Don't use Depends in your packages
 
-There are exceptions to the final rule, but you never know what your use of Depends might do to someone else's top-level or package code.
+There are exceptions to the final rule (such as needing the methods package), but you never know what your use of Depends might do to someone else's top-level or package code.
 
 
 ---
