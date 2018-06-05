@@ -148,7 +148,11 @@ choose_cols
 ```
 
 ```
-## Error in eval(expr, envir, enclos): object 'choose_cols' not found
+## function(x, cols) {
+##     select(x, cols)
+## }
+## <bytecode: 0x00000000135e53e0>
+## <environment: namespace:dependsdplyr2>
 ```
 
 ```r
@@ -157,7 +161,13 @@ head(choose_cols(mtcars, "cyl"))
 ```
 
 ```
-## Error in choose_cols(mtcars, "cyl"): could not find function "choose_cols"
+##                   cyl
+## Mazda RX4           6
+## Mazda RX4 Wag       6
+## Datsun 710          4
+## Hornet 4 Drive      6
+## Hornet Sportabout   8
+## Valiant             6
 ```
 
 ```r
@@ -198,7 +208,7 @@ head(choose_cols(mtcars, "cyl"))
 ```
 
 ```
-## Error in choose_cols(mtcars, "cyl"): could not find function "choose_cols"
+## Error in select(x, cols): unused argument (cols)
 ```
 
 And the same error occurs if I attach MASS *indirectly* by loading a package that depends on it:
@@ -212,7 +222,13 @@ head(choose_cols(mtcars, "cyl"))
 ```
 
 ```
-## Error in choose_cols(mtcars, "cyl"): could not find function "choose_cols"
+##                   cyl
+## Mazda RX4           6
+## Mazda RX4 Wag       6
+## Datsun 710          4
+## Hornet 4 Drive      6
+## Hornet Sportabout   8
+## Valiant             6
 ```
 
 ```r
@@ -257,7 +273,7 @@ head(choose_cols(mtcars, "cyl"))
 ```
 
 ```
-## Error in choose_cols(mtcars, "cyl"): could not find function "choose_cols"
+## Error in select(x, cols): unused argument (cols)
 ```
 
 This fails even though it's package code. Why? Because dependsdplyr2 is counting on dplyr being not only attached but also attached after any other package that might create namespace conflicts.
@@ -271,7 +287,7 @@ detach("package:dependsdplyr2")
 detach("package:dplyr")
 ```
 
-Two further example might be useful. One is where we Depend on MASS but actually Import from dplyr:
+Two further examples might be useful. One is where we Depend on MASS but actually Import from dplyr:
 
 
 ```r
@@ -389,7 +405,7 @@ There are exceptions to the final rule (such as needing the methods package), bu
 
 The main counter-argument I've heard to this is that a developer may have a package that is fairly useless without its strong dependency (e.g., a graphics package building on ggplot2). In these cases, I also think Depends is a bad idea (for all the above resons) but also because it makes assumptions about the end-user (either that they don't know the dependency or that it's preferable for them to have the package attached.) Smart people disagree here, but my view is that we should try to make as few assumptions as possible about the end-user. Putting the dependency in Imports ensures that the package is installed and its namespace is available. 
 
-I don't think we should further assume that the user wants to be able to use `func()` without having to `library("dependency")` or `dependency::func()`. WRE says graphics extensions are a possible extension but I think it's safer to let users to decide whether and when to attach rather than load dependencies. For example, in my own scripts, I generally use `requireNamespace()` and fully qualified references and wouldn't want packages I'm using to attach anything. Lest weird stuff happens:
+I don't think we should further assume that the user wants to be able to use `func()` without having to `library("dependency")` or `dependency::func()`. WRE says graphics extensions are a possible extension but I think it's safer to let users decide whether and when to attach rather than load dependencies. For example, in my own scripts, I generally use `requireNamespace()` and fully qualified references and wouldn't want packages I'm using to attach anything. Lest weird stuff happens:
 
 
 
