@@ -149,7 +149,7 @@ choose_cols
 ## function(x, cols) {
 ##     select(x, cols)
 ## }
-## <bytecode: 0x0000000040f3f228>
+## <bytecode: 0x0000000045039268>
 ## <environment: namespace:dependsdplyr2>
 ```
 
@@ -208,6 +208,72 @@ head(choose_cols(mtcars, "cyl"))
 ```
 ## Error in select(x, cols): unused argument (cols)
 ```
+
+And the same error occurs if I attach MASS *indirectly* by loading a package that depends on it:
+
+
+```r
+detach("package:MASS")
+
+# dependsdplyr2 function works as expected, again
+head(choose_cols(mtcars, "cyl"))
+```
+
+```
+##                   cyl
+## Mazda RX4           6
+## Mazda RX4 Wag       6
+## Datsun 710          4
+## Hornet 4 Drive      6
+## Hornet Sportabout   8
+## Valiant             6
+```
+
+```r
+# now load dependsMASS
+library("dependsMASS")
+```
+
+```
+## Loading required package: MASS
+```
+
+```
+## 
+## Attaching package: 'MASS'
+```
+
+```
+## The following object is masked from 'package:dplyr':
+## 
+##     select
+```
+
+```r
+"package:dplyr" %in% search() # TRUE
+```
+
+```
+## [1] TRUE
+```
+
+```r
+"package:MASS" %in% search() # TRUE
+```
+
+```
+## [1] TRUE
+```
+
+```r
+# dependsdplyr2 function errors, again, even though I didn't explicitly attach MASS
+head(choose_cols(mtcars, "cyl"))
+```
+
+```
+## Error in select(x, cols): unused argument (cols)
+```
+
 
 This fails even though it's package code. Why? Because dependsdplyr2 is counting on dplyr being not only attached but also attached after any other package that might create namespace conflicts.
 

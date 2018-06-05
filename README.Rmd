@@ -56,6 +56,24 @@ library("MASS")
 head(choose_cols(mtcars, "cyl"))
 ```
 
+And the same error occurs if I attach MASS *indirectly* by loading a package that depends on it:
+
+```{r}
+detach("package:MASS")
+
+# dependsdplyr2 function works as expected, again
+head(choose_cols(mtcars, "cyl"))
+
+# now load dependsMASS
+library("dependsMASS")
+"package:dplyr" %in% search() # TRUE
+"package:MASS" %in% search() # TRUE
+
+# dependsdplyr2 function errors, again, even though I didn't explicitly attach MASS
+head(choose_cols(mtcars, "cyl"))
+```
+
+
 This fails even though it's package code. Why? Because dependsdplyr2 is counting on dplyr being not only attached but also attached after any other package that might create namespace conflicts.
 
 The lessons learned:
