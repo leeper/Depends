@@ -2,7 +2,7 @@ This is a demo of the potential dangers of `Depends`. This repo contains three p
 
  - `dependsdplyr` Depends on dplyr and has no code
  - `dependsMASS` Depends on MASS and has no code
- - `dependsdplyr` Depends on dplyr also, and uses the `select()` function without importing it or the dplyr namespace. Instead, it only `Depends` on dplyr.
+ - `dependsdplyr2` Depends on dplyr also, and uses the `select()` function without importing it or the dplyr namespace. Instead, it only `Depends` on dplyr.
 
 This will highlight an important distinction between Depends - which *loads* a package namespace and *attaches* that namespace to the `search()` path - and Imports - which only loads the namespace.
 
