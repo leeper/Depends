@@ -1,4 +1,4 @@
-This is a demo of the potential dangers of `Depends`. This repo contains four packages:
+This is a demo of the potential dangers of `Depends`. As [Hadley said on Twitter](https://twitter.com/hadleywickham/status/1003986395344470016), " it takes a while to fully grasp that DESCRIPTION primary influences the installation of your package, not is behaviour at run time. Depends is the unfortunate field that affects both." This demo shows precisely what that means. It contains four packages:
 
  - `dependsdplyr` Depends on dplyr and has no code.
  - `dependsMASS` Depends on MASS and has no code.

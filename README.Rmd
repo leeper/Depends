@@ -1,4 +1,4 @@
-This is a demo of the potential dangers of `Depends`. This repo contains four packages:
+This is a demo of the potential dangers of `Depends`. As [Hadley said on Twitter](https://twitter.com/hadleywickham/status/1003986395344470016), " it takes a while to fully grasp that DESCRIPTION primary influences the installation of your package, not is behaviour at run time. Depends is the unfortunate field that affects both." This demo shows precisely what that means. It contains four packages:
 
  - `dependsdplyr` Depends on dplyr and has no code.
  - `dependsMASS` Depends on MASS and has no code.
@@ -130,7 +130,7 @@ The lessons learned:
  - Always use a fully qualified reference - `pkg::func()` - when there might be some namespace ambiguity, such as at the top-level or when your package imports from two namespaces that conflict (like MASS and dplyr)
  - Don't use Depends in your packages.
 
-There are exceptions to the final rule (such as needing the methods package), but you never know what your use of Depends might do to someone else's top-level or package code. As always [*Writing R Extensions*](https://cran.r-project.org/doc/manuals/r-devel/R-exts.html#Package-Dependencies) is the best reference for appropriate specification of the DESCRIPTION file.
+There are exceptions to the final rule (such as needing the methods package), but you never know what your use of Depends might do to someone else's top-level or package code. As always [*Writing R Extensions*](https://cran.r-project.org/doc/manuals/r-devel/R-exts.html#Package-Dependencies) is the best reference for appropriate specification of the DESCRIPTION file. 
 
 The main counter-argument I've heard to this is that a developer may have a package that is fairly useless without its strong dependency (e.g., a graphics package building on ggplot2). In these cases, I also think Depends is a bad idea (for all the above reasons) but also because it makes assumptions about the end-user (either that they don't know the dependency or that it's preferable for them to have the package attached.) Smart people disagree here, but my view is that we should try to make as few assumptions as possible about the end-user. Putting the dependency in Imports ensures that the package is installed and its namespace is available. 
 
@@ -158,6 +158,7 @@ area(sin, 0, pi) # works
 ```
 
 Even though we didn't explicitly attach MASS, code from it now works. What changed? We could debug by actively checking `search()` but it's not obvious from the code alone. Again, opinions will differ on whether that's desirable or undesirable in any particular application but to me it feels wrong, since it then affects top-level code in non-obvious ways.
+
 
 ---
 
